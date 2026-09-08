@@ -283,6 +283,12 @@
   </div>
 
   <div class="group">
+    <p class="section-title">Разметка Telegram — настоящий жирный и курсив</p>
+    <p class="section-sub">Это не подмена букв, а формат самого Telegram: напишите текст между звёздочками/подчёркиваниями и отправьте — приложение само отрисует его настоящим жирным или курсивным шрифтом. Работает одинаково для русского и английского, потому что меняется начертание, а не буквы.</p>
+    <div class="grid" id="gridTelegram"></div>
+  </div>
+
+  <div class="group">
     <p class="section-title">Универсальные начертания</p>
     <p class="section-sub">Работают одинаково для русских и английских букв — это декоративные символы, которые добавляются к обычным буквам.</p>
     <div class="grid" id="gridUniversal"></div>
@@ -295,7 +301,7 @@
   </div>
 
   <footer>
-    Технические ограничения Unicode: полноценных «жирных» или «курсивных» кириллических букв в стандарте не существует, поэтому для русского текста красивый вид достигается декоративными символами (зачёркивание, рамки, подчёркивания), а не заменой самих букв.
+    Технические ограничения Unicode: полноценных «жирных» или «курсивных» кириллических букв в стандарте не существует, поэтому такие стили есть только для латиницы. Для русского настоящий жирный/курсив даёт разметка Telegram (первый блок выше) — она включена по умолчанию в приложении; если после вставки текст не отформатировался, попробуйте один раз отправить сообщение или проверьте настройку «Markdown» в параметрах чата.
   </footer>
 
 </div>
@@ -309,6 +315,7 @@
   const clearBtn = document.getElementById('clearBtn');
   const gridUniversal = document.getElementById('gridUniversal');
   const gridLatin = document.getElementById('gridLatin');
+  const gridTelegram = document.getElementById('gridTelegram');
   const activePanel = document.getElementById('activePanel');
   const activeName = document.getElementById('activeName');
   const activePreview = document.getElementById('activePreview');
@@ -373,6 +380,15 @@
   }
 
   // ---------- style catalog ----------
+  const telegramMdStyles = [
+    { name:'Жирный',        fn: s => s.length ? `*${s}*` : s },
+    { name:'Курсив',        fn: s => s.length ? `_${s}_` : s },
+    { name:'Жирный курсив', fn: s => s.length ? `_*${s}*_` : s },
+    { name:'Зачёркнутый',   fn: s => s.length ? `~${s}~` : s },
+    { name:'Моноширинный',  fn: s => s.length ? '`' + s + '`' : s },
+    { name:'Спойлер',       fn: s => s.length ? `||${s}||` : s },
+  ];
+
   const universalStyles = [
     { name:'Зачёркнутый',        fn: s => combine(s, '\u0336') },
     { name:'Подчёркнутый',       fn: s => combine(s, '\u0332') },
@@ -422,8 +438,9 @@
       nameEl.className = 'card-name';
       nameEl.textContent = style.name;
       const tag = document.createElement('span');
-      tag.className = 'tag ' + (groupKey === 'universal' ? 'ru' : 'en');
-      tag.textContent = groupKey === 'universal' ? 'RU + EN' : 'EN / 123';
+      const isRu = groupKey === 'universal' || groupKey === 'telegram';
+      tag.className = 'tag ' + (isRu ? 'ru' : 'en');
+      tag.textContent = isRu ? 'RU + EN' : 'EN / 123';
       top.appendChild(nameEl);
       top.appendChild(tag);
 
@@ -440,9 +457,16 @@
     });
   }
 
+  function stylesForGroup(group){
+    if(group === 'telegram') return telegramMdStyles;
+    if(group === 'universal') return universalStyles;
+    return latinStyles;
+  }
+
   function updatePreviews(){
     const text = currentText();
-    [ ['universal', universalStyles, gridUniversal],
+    [ ['telegram', telegramMdStyles, gridTelegram],
+      ['universal', universalStyles, gridUniversal],
       ['latin', latinStyles, gridLatin] ].forEach(([key, styles, container]) => {
       const cards = container.querySelectorAll('.card');
       cards.forEach((card, idx) => {
@@ -453,7 +477,7 @@
     });
 
     if(activeIndex){
-      const styles = activeIndex.group === 'universal' ? universalStyles : latinStyles;
+      const styles = stylesForGroup(activeIndex.group);
       const style = styles[activeIndex.idx];
       const styled = style.fn(text);
       activeName.textContent = style.name;
@@ -479,7 +503,7 @@
 
   function getActiveStyledText(){
     if(!activeIndex) return '';
-    const styles = activeIndex.group === 'universal' ? universalStyles : latinStyles;
+    const styles = stylesForGroup(activeIndex.group);
     return styles[activeIndex.idx].fn(currentText());
   }
 
@@ -519,6 +543,7 @@
     updatePreviews();
   });
 
+  renderGrid(gridTelegram, telegramMdStyles, 'telegram');
   renderGrid(gridUniversal, universalStyles, 'universal');
   renderGrid(gridLatin, latinStyles, 'latin');
   updatePreviews();
