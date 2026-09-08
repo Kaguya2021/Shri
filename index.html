@@ -3,7 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Smart Bold Italic Generator</title>
+    <title>Bold Italic Generator</title>
+    <!-- Подключаем шрифт, идентичный Mathematical Bold Italic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
+    
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
@@ -64,7 +69,7 @@
             overflow: hidden;
         }
         .text-output {
-            font-size: 24px;
+            font-size: 28px;
             word-break: break-word;
             text-align: center;
             width: 100%;
@@ -104,14 +109,12 @@
 <div class="card">
     <h1>Bold Italic Generator</h1>
     
-    <textarea id="userInput" placeholder="Введите текст (Русский или English)..."></textarea>
+    <textarea id="userInput" placeholder="Введите текст..."></textarea>
 
     <div class="mode-badge" id="modeBadge">Режим: Unicode Текст</div>
     
     <div class="output-box">
-        <!-- Блок для английского текста (Unicode) -->
         <div class="text-output" id="textOutput">𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄</div>
-        <!-- Блок для русского текста (Картинка) -->
         <canvas id="imageOutput"></canvas>
     </div>
 
@@ -121,14 +124,13 @@
 
 <script>
     const userInput = document.getElementById('userInput');
-    const textOutput = document.getElementById('textOutput');
+    const textOutput = document.getElementById('outputText');
     const imageOutput = document.getElementById('imageOutput');
     const modeBadge = document.getElementById('modeBadge');
     const copyBtn = document.getElementById('copyBtn');
     const toast = document.getElementById('toast');
     const ctx = imageOutput.getContext('2d');
 
-    // Карта символов Unicode Bold Italic (A-Z, a-z, 0-9)
     const boldItalicMap = {
         'A': '𝑨', 'B': '𝑩', 'C': '𝑪', 'D': '𝑫', 'E': '𝑬', 'F': '𝑭', 'G': '𝑮',
         'H': '𝑯', 'I': '𝑰', 'J': '𝑱', 'K': '𝑩', 'L': '𝑳', 'M': '𝑴', 'N': '𝑵',
@@ -141,9 +143,8 @@
         '0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟡'
     };
 
-    let currentMode = 'unicode'; // 'unicode' или 'image'
+    let currentMode = 'unicode';
 
-    // Проверка: содержит ли текст кириллицу или другие не-латинские символы
     function hasNonLatin(str) {
         return /[а-яА-ЯёЁ]/.test(str);
     }
@@ -153,39 +154,40 @@
     }
 
     function renderImage(text) {
-        const fontStyle = 'bold italic 36px "Georgia", serif';
-        ctx.font = fontStyle;
-        
-        const metrics = ctx.measureText(text || 'Пример');
-        imageOutput.width = metrics.width + 40;
-        imageOutput.height = 70;
+        // Ждем загрузки шрифта Playfair Display
+        document.fonts.ready.then(() => {
+            const fontStyle = 'italic 700 42px "Playfair Display", serif';
+            ctx.font = fontStyle;
+            
+            const metrics = ctx.measureText(text || 'Привет');
+            imageOutput.width = metrics.width + 40;
+            imageOutput.height = 80;
 
-        ctx.fillStyle = '#000000';
-        ctx.fillRect(0, 0, imageOutput.width, imageOutput.height);
+            ctx.fillStyle = '#000000';
+            ctx.fillRect(0, 0, imageOutput.width, imageOutput.height);
 
-        ctx.font = fontStyle;
-        ctx.fillStyle = '#ffffff';
-        ctx.textBaseline = 'middle';
-        ctx.fillText(text || 'Пример', 20, imageOutput.height / 2);
+            ctx.font = fontStyle;
+            ctx.fillStyle = '#ffffff';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(text || 'Привет', 20, imageOutput.height / 2);
+        });
     }
 
     function updateView() {
         const val = userInput.value;
 
         if (hasNonLatin(val)) {
-            // Включить режим картинки для русского
             currentMode = 'image';
             modeBadge.textContent = 'Режим: Картинка (для русского)';
-            textOutput.style.display = 'none';
+            document.getElementById('textOutput').style.display = 'none';
             imageOutput.style.display = 'block';
             renderImage(val);
         } else {
-            // Включить режим текста Unicode для латиницы
             currentMode = 'unicode';
-            modeBadge.textContent = 'Режим: Unicode Текст (копируется как текст)';
+            modeBadge.textContent = 'Режим: Unicode Текст';
             imageOutput.style.display = 'none';
-            textOutput.style.display = 'block';
-            textOutput.textContent = val ? convertToUnicode(val) : '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
+            document.getElementById('textOutput').style.display = 'block';
+            document.getElementById('textOutput').textContent = val ? convertToUnicode(val) : '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
         }
     }
 
@@ -193,11 +195,9 @@
 
     copyBtn.addEventListener('click', () => {
         if (currentMode === 'unicode') {
-            // Копируем как текст
-            const textToCopy = textOutput.textContent;
+            const textToCopy = document.getElementById('textOutput').textContent;
             navigator.clipboard.writeText(textToCopy).then(showToast);
         } else {
-            // Копируем как PNG-картинку
             imageOutput.toBlob(blob => {
                 if (!blob) return;
                 const item = new ClipboardItem({ 'image/png': blob });
