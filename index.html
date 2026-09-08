@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Bold Italic Generator</title>
-    <!-- Подключаем шрифт, идентичный Mathematical Bold Italic -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
@@ -79,7 +78,11 @@
             height: auto;
             display: none;
         }
-        .copy-btn {
+        .btn-group {
+            display: flex;
+            gap: 10px;
+        }
+        .copy-btn, .download-btn {
             background: #fff;
             color: #000;
             border: none;
@@ -88,11 +91,17 @@
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            width: 100%;
+            flex: 1;
             transition: background 0.2s, transform 0.1s;
         }
+        .download-btn {
+            background: #2a2a2a;
+            color: #fff;
+            display: none;
+        }
         .copy-btn:hover { background: #e0e0e0; }
-        .copy-btn:active { transform: scale(0.98); }
+        .download-btn:hover { background: #3a3a3a; }
+        .copy-btn:active, .download-btn:active { transform: scale(0.98); }
         .toast {
             text-align: center;
             color: #4cd964;
@@ -118,16 +127,20 @@
         <canvas id="imageOutput"></canvas>
     </div>
 
-    <button class="copy-btn" id="copyBtn">Скопировать</button>
+    <div class="btn-group">
+        <button class="copy-btn" id="copyBtn">Скопировать</button>
+        <button class="download-btn" id="downloadBtn">Скачать PNG</button>
+    </div>
     <div class="toast" id="toast">Скопировано!</div>
 </div>
 
 <script>
     const userInput = document.getElementById('userInput');
-    const textOutput = document.getElementById('outputText');
+    const textOutput = document.getElementById('textOutput');
     const imageOutput = document.getElementById('imageOutput');
     const modeBadge = document.getElementById('modeBadge');
     const copyBtn = document.getElementById('copyBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
     const toast = document.getElementById('toast');
     const ctx = imageOutput.getContext('2d');
 
@@ -154,7 +167,6 @@
     }
 
     function renderImage(text) {
-        // Ждем загрузки шрифта Playfair Display
         document.fonts.ready.then(() => {
             const fontStyle = 'italic 700 42px "Playfair Display", serif';
             ctx.font = fontStyle;
@@ -179,36 +191,52 @@
         if (hasNonLatin(val)) {
             currentMode = 'image';
             modeBadge.textContent = 'Режим: Картинка (для русского)';
-            document.getElementById('textOutput').style.display = 'none';
+            textOutput.style.display = 'none';
             imageOutput.style.display = 'block';
+            downloadBtn.style.display = 'block';
             renderImage(val);
         } else {
             currentMode = 'unicode';
             modeBadge.textContent = 'Режим: Unicode Текст';
             imageOutput.style.display = 'none';
-            document.getElementById('textOutput').style.display = 'block';
-            document.getElementById('textOutput').textContent = val ? convertToUnicode(val) : '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
+            downloadBtn.style.display = 'none';
+            textOutput.style.display = 'block';
+            textOutput.textContent = val ? convertToUnicode(val) : '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
         }
     }
 
     userInput.addEventListener('input', updateView);
 
-    copyBtn.addEventListener('click', () => {
+    copyBtn.addEventListener('click', async () => {
         if (currentMode === 'unicode') {
-            const textToCopy = document.getElementById('textOutput').textContent;
-            navigator.clipboard.writeText(textToCopy).then(showToast);
+            await navigator.clipboard.writeText(textOutput.textContent);
+            showToast('Текст скопирован!');
         } else {
-            imageOutput.toBlob(blob => {
-                if (!blob) return;
-                const item = new ClipboardItem({ 'image/png': blob });
-                navigator.clipboard.write([item]).then(showToast);
-            });
+            try {
+                imageOutput.toBlob(async (blob) => {
+                    if (!blob) return;
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    await navigator.clipboard.write([item]);
+                    showToast('Картинка скопирована!');
+                });
+            } catch (err) {
+                // Если браузер телефона блокирует прямое копирование картинки
+                showToast('Браузер блокирует копирование — нажмите «Скачать»!');
+            }
         }
     });
 
-    function showToast() {
+    downloadBtn.addEventListener('click', () => {
+        const link = document.createElement('a');
+        link.download = 'bold-italic.png';
+        link.href = imageOutput.toDataURL('image/png');
+        link.click();
+    });
+
+    function showToast(msg) {
+        toast.textContent = msg;
         toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2000);
+        setTimeout(() => toast.classList.remove('show'), 2500);
     }
 </script>
 
