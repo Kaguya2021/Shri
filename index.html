@@ -1,127 +1,528 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ru">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bold Italic Text Generator</title>
-    <style>
-        * { box-sizing: border-box; margin: 0; padding: 0; }
-        body {
-            background-color: #0d0d0d;
-            color: #fff;
-            font-family: system-ui, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            padding: 20px;
-        }
-        .card {
-            background: #181818;
-            border: 1px solid #2a2a2a;
-            border-radius: 16px;
-            padding: 24px;
-            width: 100%;
-            max-width: 500px;
-        }
-        textarea {
-            width: 100%;
-            height: 90px;
-            background: #000;
-            border: 1px solid #333;
-            border-radius: 10px;
-            color: #fff;
-            padding: 12px;
-            font-size: 16px;
-            resize: none;
-            outline: none;
-            margin-bottom: 16px;
-        }
-        .output-box {
-            background: #000;
-            border: 1px solid #282828;
-            border-radius: 10px;
-            padding: 16px;
-            min-height: 80px;
-            font-size: 24px;
-            word-break: break-word;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-        .copy-btn {
-            background: #fff;
-            color: #000;
-            border: none;
-            border-radius: 8px;
-            padding: 12px;
-            font-weight: 600;
-            font-size: 14px;
-            cursor: pointer;
-            width: 100%;
-        }
-        .toast {
-            text-align: center;
-            color: #4cd964;
-            font-size: 13px;
-            margin-top: 10px;
-            opacity: 0;
-            transition: opacity 0.3s;
-        }
-        .toast.show { opacity: 1; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Литеры — красивый текст для Telegram</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#171410;
+    --ink-soft:#221d16;
+    --paper:#f3eee1;
+    --paper-dim:#e7ddc6;
+    --text-on-ink:#ece3d0;
+    --text-muted:#a89a7f;
+    --gold:#c98a3b;
+    --teal:#4d8f84;
+    --line:#43392c;
+    --danger:#b25b4a;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--ink);
+    color:var(--text-on-ink);
+    font-family:'Manrope',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--gold);color:var(--ink);}
+
+  a{color:inherit;}
+
+  .wrap{
+    max-width:920px;
+    margin:0 auto;
+    padding:56px 24px 100px;
+  }
+
+  header.hero{
+    margin-bottom:48px;
+  }
+  .kicker{
+    font-size:14px;
+    color:var(--gold);
+    margin:0 0 14px;
+    font-weight:600;
+  }
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:600;
+    font-size:clamp(34px,6vw,54px);
+    line-height:1.08;
+    margin:0 0 18px;
+    letter-spacing:-0.01em;
+    max-width:14ch;
+  }
+  .lede{
+    color:var(--text-muted);
+    font-size:17px;
+    max-width:52ch;
+    margin:0;
+  }
+
+  /* input card */
+  .paper-card{
+    background:var(--paper);
+    color:var(--ink);
+    border-radius:4px;
+    padding:28px 28px 20px;
+    margin:40px 0 12px;
+    box-shadow:0 24px 60px -30px rgba(0,0,0,.6);
+    position:relative;
+  }
+  .paper-card::before{
+    content:"";
+    position:absolute;
+    inset:10px 10px auto 10px;
+    top:10px; bottom:10px; left:10px; right:10px;
+    border:1px solid rgba(23,20,16,.14);
+    border-radius:2px;
+    pointer-events:none;
+  }
+  textarea#input{
+    width:100%;
+    min-height:110px;
+    border:none;
+    background:transparent;
+    resize:vertical;
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    color:var(--ink);
+    outline:none;
+    position:relative;
+  }
+  textarea#input::placeholder{color:#8a7f68;}
+  .card-foot{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    font-size:13px;
+    color:#7a6f57;
+    position:relative;
+    padding-top:8px;
+    border-top:1px solid rgba(23,20,16,.14);
+  }
+  .card-foot button{
+    background:none;
+    border:none;
+    color:#7a6f57;
+    font:inherit;
+    cursor:pointer;
+    text-decoration:underline;
+    padding:0;
+  }
+
+  /* active preview */
+  #activePanel{
+    display:none;
+    margin:32px 0 56px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:26px 28px;
+    background:var(--ink-soft);
+  }
+  #activePanel.show{display:block;}
+  .active-label{
+    font-size:13px;
+    color:var(--text-muted);
+    margin-bottom:10px;
+  }
+  .active-preview{
+    font-family:'Fraunces',serif;
+    font-size:clamp(22px,3.4vw,32px);
+    word-break:break-word;
+    margin-bottom:20px;
+    color:var(--text-on-ink);
+  }
+  .active-actions{
+    display:flex;
+    gap:12px;
+    flex-wrap:wrap;
+  }
+  .btn{
+    font:inherit;
+    font-weight:700;
+    font-size:14px;
+    padding:11px 20px;
+    border-radius:3px;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:transform .08s ease;
+  }
+  .btn:active{transform:scale(0.97);}
+  .btn-primary{background:var(--gold);color:var(--ink);}
+  .btn-primary:hover{background:#d99a4d;}
+  .btn-ghost{background:transparent;color:var(--text-on-ink);border-color:var(--line);}
+  .btn-ghost:hover{border-color:var(--text-muted);}
+
+  /* section heading */
+  .section-title{
+    font-family:'Fraunces',serif;
+    font-size:22px;
+    margin:0 0 4px;
+    font-weight:600;
+  }
+  .section-sub{
+    color:var(--text-muted);
+    font-size:14px;
+    margin:0 0 20px;
+  }
+
+  .group{margin-top:44px;}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:14px;
+  }
+
+  .card{
+    background:var(--ink-soft);
+    border:1px solid var(--line);
+    border-radius:4px;
+    padding:16px 16px 14px;
+    cursor:pointer;
+    transition:border-color .12s ease, background .12s ease;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .card:hover{border-color:var(--gold);}
+  .card.selected{border-color:var(--gold); background:#2a2419;}
+
+  .card-top{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    gap:8px;
+  }
+  .card-name{
+    font-size:13px;
+    font-weight:700;
+    color:var(--text-on-ink);
+  }
+  .tag{
+    font-size:10.5px;
+    font-weight:700;
+    padding:3px 7px;
+    border-radius:20px;
+    white-space:nowrap;
+  }
+  .tag.ru{background:rgba(77,143,132,.18); color:var(--teal);}
+  .tag.en{background:rgba(201,138,59,.16); color:var(--gold);}
+
+  .card-preview{
+    font-size:16px;
+    color:var(--text-on-ink);
+    word-break:break-word;
+    min-height:22px;
+    font-family:system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  }
+
+  .toast{
+    position:fixed;
+    bottom:26px;
+    left:50%;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--gold);
+    color:var(--ink);
+    font-weight:700;
+    font-size:14px;
+    padding:12px 22px;
+    border-radius:30px;
+    opacity:0;
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+    z-index:20;
+  }
+  .toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+
+  footer{
+    margin-top:64px;
+    padding-top:24px;
+    border-top:1px solid var(--line);
+    color:var(--text-muted);
+    font-size:13px;
+    max-width:65ch;
+  }
+
+  @media (max-width:520px){
+    .wrap{padding:40px 16px 80px;}
+    .paper-card{padding:22px 18px 16px;}
+  }
+</style>
 </head>
 <body>
 
-<div class="card">
-    <textarea id="userInput" placeholder="Введите текст на любом языке..."></textarea>
-    <div class="output-box" id="outputText">𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄</div>
-    <button class="copy-btn" id="copyBtn">Скопировать текст</button>
-    <div class="toast" id="toast">Скопировано!</div>
+<div class="wrap">
+
+  <header class="hero">
+    <p class="kicker">Генератор красивого текста</p>
+    <h1>Один текст, десятки начертаний</h1>
+    <p class="lede">Введите текст на русском или английском, выберите оформление и отправьте готовый вариант прямо в Telegram.</p>
+  </header>
+
+  <div class="paper-card">
+    <textarea id="input" placeholder="Привет, Telegram! Hello world 123" maxlength="500">Привет, Telegram! Hello world 123</textarea>
+    <div class="card-foot">
+      <span id="counter">0 / 500</span>
+      <button id="clearBtn" type="button">очистить</button>
+    </div>
+  </div>
+
+  <div id="activePanel">
+    <p class="active-label">Выбрано: <span id="activeName"></span></p>
+    <div class="active-preview" id="activePreview"></div>
+    <div class="active-actions">
+      <button class="btn btn-primary" id="copyBtn" type="button">Скопировать</button>
+      <button class="btn btn-ghost" id="telegramBtn" type="button">Отправить в Telegram</button>
+    </div>
+  </div>
+
+  <div class="group">
+    <p class="section-title">Универсальные начертания</p>
+    <p class="section-sub">Работают одинаково для русских и английских букв — это декоративные символы, которые добавляются к обычным буквам.</p>
+    <div class="grid" id="gridUniversal"></div>
+  </div>
+
+  <div class="group">
+    <p class="section-title">Латинские алфавиты Unicode</p>
+    <p class="section-sub">Настоящие «другие» буквы существуют в Unicode только для латиницы и цифр — русские буквы в этих стилях останутся обычными.</p>
+    <div class="grid" id="gridLatin"></div>
+  </div>
+
+  <footer>
+    Технические ограничения Unicode: полноценных «жирных» или «курсивных» кириллических букв в стандарте не существует, поэтому для русского текста красивый вид достигается декоративными символами (зачёркивание, рамки, подчёркивания), а не заменой самих букв.
+  </footer>
+
 </div>
 
+<div class="toast" id="toast">Скопировано</div>
+
 <script>
-    const userInput = document.getElementById('userInput');
-    const outputText = document.getElementById('outputText');
-    const copyBtn = document.getElementById('copyBtn');
-    const toast = document.getElementById('toast');
+(function(){
+  const input = document.getElementById('input');
+  const counter = document.getElementById('counter');
+  const clearBtn = document.getElementById('clearBtn');
+  const gridUniversal = document.getElementById('gridUniversal');
+  const gridLatin = document.getElementById('gridLatin');
+  const activePanel = document.getElementById('activePanel');
+  const activeName = document.getElementById('activeName');
+  const activePreview = document.getElementById('activePreview');
+  const copyBtn = document.getElementById('copyBtn');
+  const telegramBtn = document.getElementById('telegramBtn');
+  const toast = document.getElementById('toast');
 
-    const unicodeMap = {
-        // EN
-        'A': '𝑨', 'B': '𝑩', 'C': '𝑪', 'D': '𝑫', 'E': '𝑬', 'F': '𝑭', 'G': '𝑮',
-        'H': '𝑯', 'I': '𝑰', 'J': '𝑱', 'K': '𝑩', 'L': '𝑳', 'M': '𝑴', 'N': '𝑵',
-        'O': '𝑶', 'P': '𝑸', 'Q': '𝑸', 'R': '𝑹', 'S': '𝑺', 'T': '𝑻', 'U': '𝑼',
-        'V': '𝑽', 'W': '𝑾', 'X': '𝑿', 'Y': '𝒀', 'Z': '𝒁',
-        'a': '𝒂', 'b': '𝒃', 'c': '𝒄', 'd': '𝒅', 'e': '𝒆', 'f': '𝒇', 'g': '𝒈',
-        'h': '𝒉', 'i': '𝒊', 'j': '𝒋', 'k': '𝒌', 'l': '𝒍', 'm': '𝒎', 'n': '𝒏',
-        'o': '𝒐', 'p': '𝒑', 'q': '𝒒', 'r': '𝒓', 's': '𝒔', 't': '𝒕', 'u': '𝒖',
-        'v': '𝒗', 'w': '𝒘', 'x': '𝒙', 'y': '𝒚', 'z': '𝒛',
-        // RU (Псевдо-замена)
-        'А': '𝑨', 'Б': '𝟔', 'В': '𝑩', 'Г': '𝑻', 'Д': '𝑫', 'Е': '𝑬', 'Ё': '𝑬',
-        'Ж': '𝑾', 'З': '𝒁', 'И': '𝑼', 'Й': '𝑼', 'К': '𝑩', 'Л': '𝑳', 'М': '𝑴',
-        'Н': '𝑯', 'О': '𝑶', 'П': '𝑷', 'Р': '𝑸', 'С': '𝑪', 'Т': '𝑻', 'У': '𝒀',
-        'Ф': '𝜱', 'Х': '𝑿', 'Ц': '𝑼', 'Ч': '𝒀', 'Ш': '𝑾', 'Щ': '𝑾',
-        'а': '𝒂', 'б': '𝜯', 'в': '𝜝', 'г': '𝜸', 'д': '𝒅', 'е': '𝒆', 'ё': '𝒆',
-        'ж': '𝒘', 'з': '𝒛', 'и': '𝒖', 'й': '𝒖', 'к': '𝒌', 'л': '𝒍', 'м': '𝒎',
-        'н': '𝒉', 'о': '𝒐', 'п': '𝒑', 'р': '𝒑', 'с': '𝒄', 'т': '𝒎', 'у': '𝒚',
-        'ф': '𝜙', 'х': '𝒙', 'ц': '𝒖', 'ч': '𝒛', 'ш': '𝒘', 'щ': '𝒘',
-        '0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟡'
+  const MAXLEN = 500;
+
+  // ---------- helpers ----------
+  function chars(str){ return Array.from(str); }
+
+  function combine(str, marks){
+    return chars(str).map(ch => {
+      if(ch === ' ' || ch === '\n' || ch === '\t') return ch;
+      return ch + marks;
+    }).join('');
+  }
+
+  function mapLatin(str, mapFn){
+    return chars(str).map(ch => mapFn(ch) || ch).join('');
+  }
+
+  // build offset-based map for a contiguous unicode alphabet run
+  function offsetMap(base){
+    // base = {A:codepoint for 'A', a:codepoint for 'a', d:codepoint for '0' or null, exceptions:{}}
+    return function(ch){
+      if(base.exceptions && base.exceptions[ch]) return String.fromCodePoint(base.exceptions[ch]);
+      if(ch >= 'A' && ch <= 'Z') return String.fromCodePoint(base.A + (ch.charCodeAt(0)-65));
+      if(ch >= 'a' && ch <= 'z') return String.fromCodePoint(base.a + (ch.charCodeAt(0)-97));
+      if(base.d && ch >= '0' && ch <= '9') return String.fromCodePoint(base.d + (ch.charCodeAt(0)-48));
+      return null;
     };
+  }
 
-    function convertText(str) {
-        return str.split('').map(char => unicodeMap[char] || char).join('');
+  const boldMap = offsetMap({A:0x1D400, a:0x1D41A, d:0x1D7CE});
+  const italicMap = offsetMap({A:0x1D434, a:0x1D44E, exceptions:{h:0x210E}});
+  const boldItalicMap = offsetMap({A:0x1D468, a:0x1D482});
+  const scriptMap = offsetMap({A:0x1D4D0, a:0x1D4EA}); // bold script, no holes
+  const frakturMap = offsetMap({A:0x1D56C, a:0x1D586}); // bold fraktur, no holes
+  const doubleStruckMap = offsetMap({A:0x1D538, a:0x1D552, d:0x1D7D8, exceptions:{
+    C:0x2102, H:0x210D, N:0x2115, P:0x2119, Q:0x211A, R:0x211D, Z:0x2124
+  }});
+  const sansBoldMap = offsetMap({A:0x1D5D4, a:0x1D5EE, d:0x1D7EC});
+  const monoMap = offsetMap({A:0x1D670, a:0x1D68A, d:0x1D7F6});
+
+  function circledMap(ch){
+    if(ch >= 'A' && ch <= 'Z') return String.fromCodePoint(0x24B6 + (ch.charCodeAt(0)-65));
+    if(ch >= 'a' && ch <= 'z') return String.fromCodePoint(0x24D0 + (ch.charCodeAt(0)-97));
+    if(ch === '0') return '\u24EA';
+    if(ch >= '1' && ch <= '9') return String.fromCodePoint(0x2460 + (ch.charCodeAt(0)-49));
+    return null;
+  }
+  function squaredMap(ch){
+    if(ch >= 'A' && ch <= 'Z') return String.fromCodePoint(0x1F130 + (ch.charCodeAt(0)-65));
+    if(ch >= 'a' && ch <= 'z') return String.fromCodePoint(0x1F130 + (ch.charCodeAt(0)-65));
+    return null;
+  }
+
+  function wrapWith(before, after){
+    return (str) => str.length ? `${before} ${str} ${after}` : str;
+  }
+
+  // ---------- style catalog ----------
+  const universalStyles = [
+    { name:'Зачёркнутый',        fn: s => combine(s, '\u0336') },
+    { name:'Подчёркнутый',       fn: s => combine(s, '\u0332') },
+    { name:'Двойное подчёркивание', fn: s => combine(s, '\u0333') },
+    { name:'Надчёркнутый',       fn: s => combine(s, '\u0305') },
+    { name:'Волнистое подчёркивание', fn: s => combine(s, '\u0330') },
+    { name:'В кружке',           fn: s => combine(s, '\u20DD') },
+    { name:'В рамке',            fn: s => combine(s, '\u20DE') },
+    { name:'Точки снизу',        fn: s => combine(s, '\u0323') },
+    { name:'Точки сверху',       fn: s => combine(s, '\u0307') },
+    { name:'Оформление ✦',       fn: wrapWith('✦', '✦') },
+    { name:'Оформление 『 』',    fn: wrapWith('『', '』') },
+    { name:'Оформление ⋆⁺₊',     fn: wrapWith('⋆⁺₊', '₊⁺⋆') },
+    { name:'Оформление ▬▬',      fn: wrapWith('▬▬', '▬▬') },
+  ];
+
+  const latinStyles = [
+    { name:'Жирный',        fn: s => mapLatin(s, boldMap) },
+    { name:'Курсив',        fn: s => mapLatin(s, italicMap) },
+    { name:'Жирный курсив', fn: s => mapLatin(s, boldItalicMap) },
+    { name:'Рукописный',    fn: s => mapLatin(s, scriptMap) },
+    { name:'Готический',    fn: s => mapLatin(s, frakturMap) },
+    { name:'Двойная линия', fn: s => mapLatin(s, doubleStruckMap) },
+    { name:'Гротеск жирный',fn: s => mapLatin(s, sansBoldMap) },
+    { name:'Моноширинный',  fn: s => mapLatin(s, monoMap) },
+    { name:'В кружочках',   fn: s => mapLatin(s, circledMap) },
+    { name:'В квадратиках', fn: s => mapLatin(s, squaredMap) },
+  ];
+
+  let activeIndex = null; // {group, idx}
+
+  function currentText(){
+    return input.value;
+  }
+
+  function renderGrid(container, styles, groupKey){
+    container.innerHTML = '';
+    styles.forEach((style, idx) => {
+      const card = document.createElement('div');
+      card.className = 'card';
+      card.dataset.group = groupKey;
+      card.dataset.idx = idx;
+
+      const top = document.createElement('div');
+      top.className = 'card-top';
+      const nameEl = document.createElement('span');
+      nameEl.className = 'card-name';
+      nameEl.textContent = style.name;
+      const tag = document.createElement('span');
+      tag.className = 'tag ' + (groupKey === 'universal' ? 'ru' : 'en');
+      tag.textContent = groupKey === 'universal' ? 'RU + EN' : 'EN / 123';
+      top.appendChild(nameEl);
+      top.appendChild(tag);
+
+      const preview = document.createElement('div');
+      preview.className = 'card-preview';
+      preview.dataset.role = 'preview';
+
+      card.appendChild(top);
+      card.appendChild(preview);
+
+      card.addEventListener('click', () => selectStyle(groupKey, idx));
+
+      container.appendChild(card);
+    });
+  }
+
+  function updatePreviews(){
+    const text = currentText();
+    [ ['universal', universalStyles, gridUniversal],
+      ['latin', latinStyles, gridLatin] ].forEach(([key, styles, container]) => {
+      const cards = container.querySelectorAll('.card');
+      cards.forEach((card, idx) => {
+        const styled = styles[idx].fn(text);
+        card.querySelector('[data-role="preview"]').textContent = styled || '—';
+        card.classList.toggle('selected', activeIndex && activeIndex.group === key && activeIndex.idx === idx);
+      });
+    });
+
+    if(activeIndex){
+      const styles = activeIndex.group === 'universal' ? universalStyles : latinStyles;
+      const style = styles[activeIndex.idx];
+      const styled = style.fn(text);
+      activeName.textContent = style.name;
+      activePreview.textContent = styled || '—';
+      activePanel.classList.add('show');
     }
 
-    userInput.addEventListener('input', () => {
-        const val = userInput.value;
-        outputText.textContent = val ? convertText(val) : '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
-    });
+    counter.textContent = `${text.length} / ${MAXLEN}`;
+  }
 
-    copyBtn.addEventListener('click', () => {
-        navigator.clipboard.writeText(outputText.textContent).then(() => {
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        });
-    });
+  function selectStyle(group, idx){
+    activeIndex = { group, idx };
+    updatePreviews();
+    activePanel.scrollIntoView({ behavior:'smooth', block:'nearest' });
+  }
+
+  function showToast(msg){
+    toast.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 1600);
+  }
+
+  function getActiveStyledText(){
+    if(!activeIndex) return '';
+    const styles = activeIndex.group === 'universal' ? universalStyles : latinStyles;
+    return styles[activeIndex.idx].fn(currentText());
+  }
+
+  copyBtn.addEventListener('click', async () => {
+    const text = getActiveStyledText();
+    if(!text) return;
+    try{
+      await navigator.clipboard.writeText(text);
+      showToast('Скопировано ✓');
+    }catch(e){
+      // fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      showToast('Скопировано ✓');
+    }
+  });
+
+  telegramBtn.addEventListener('click', () => {
+    const text = getActiveStyledText();
+    if(!text) return;
+    const url = 'https://t.me/share/url?url=&text=' + encodeURIComponent(text);
+    window.open(url, '_blank');
+  });
+
+  clearBtn.addEventListener('click', () => {
+    input.value = '';
+    input.focus();
+    updatePreviews();
+  });
+
+  input.addEventListener('input', () => {
+    if(input.value.length > MAXLEN) input.value = input.value.slice(0, MAXLEN);
+    updatePreviews();
+  });
+
+  renderGrid(gridUniversal, universalStyles, 'universal');
+  renderGrid(gridLatin, latinStyles, 'latin');
+  updatePreviews();
+})();
 </script>
 
 </body>
