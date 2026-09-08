@@ -3,17 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bold Italic Generator</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,700&display=swap" rel="stylesheet">
-    
+    <title>Bold Italic Text Generator</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #0d0d0d;
             color: #fff;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: system-ui, sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -27,12 +23,6 @@
             padding: 24px;
             width: 100%;
             max-width: 500px;
-            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
-        }
-        h1 {
-            font-size: 20px;
-            margin-bottom: 16px;
-            text-align: center;
         }
         textarea {
             width: 100%;
@@ -47,42 +37,18 @@
             outline: none;
             margin-bottom: 16px;
         }
-        textarea:focus { border-color: #555; }
-        .mode-badge {
-            font-size: 12px;
-            color: #888;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
         .output-box {
             background: #000;
             border: 1px solid #282828;
             border-radius: 10px;
             padding: 16px;
-            min-height: 90px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin-bottom: 16px;
-            overflow: hidden;
-        }
-        .text-output {
-            font-size: 28px;
+            min-height: 80px;
+            font-size: 24px;
             word-break: break-word;
+            margin-bottom: 16px;
             text-align: center;
-            width: 100%;
         }
-        canvas {
-            max-width: 100%;
-            height: auto;
-            display: none;
-        }
-        .btn-group {
-            display: flex;
-            gap: 10px;
-        }
-        .copy-btn, .download-btn {
+        .copy-btn {
             background: #fff;
             color: #000;
             border: none;
@@ -91,17 +57,8 @@
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            flex: 1;
-            transition: background 0.2s, transform 0.1s;
+            width: 100%;
         }
-        .download-btn {
-            background: #2a2a2a;
-            color: #fff;
-            display: none;
-        }
-        .copy-btn:hover { background: #e0e0e0; }
-        .download-btn:hover { background: #3a3a3a; }
-        .copy-btn:active, .download-btn:active { transform: scale(0.98); }
         .toast {
             text-align: center;
             color: #4cd964;
@@ -116,35 +73,20 @@
 <body>
 
 <div class="card">
-    <h1>Bold Italic Generator</h1>
-    
-    <textarea id="userInput" placeholder="Введите текст..."></textarea>
-
-    <div class="mode-badge" id="modeBadge">Режим: Unicode Текст</div>
-    
-    <div class="output-box">
-        <div class="text-output" id="textOutput">𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄</div>
-        <canvas id="imageOutput"></canvas>
-    </div>
-
-    <div class="btn-group">
-        <button class="copy-btn" id="copyBtn">Скопировать</button>
-        <button class="download-btn" id="downloadBtn">Скачать PNG</button>
-    </div>
+    <textarea id="userInput" placeholder="Введите текст на любом языке..."></textarea>
+    <div class="output-box" id="outputText">𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄</div>
+    <button class="copy-btn" id="copyBtn">Скопировать текст</button>
     <div class="toast" id="toast">Скопировано!</div>
 </div>
 
 <script>
     const userInput = document.getElementById('userInput');
-    const textOutput = document.getElementById('textOutput');
-    const imageOutput = document.getElementById('imageOutput');
-    const modeBadge = document.getElementById('modeBadge');
+    const outputText = document.getElementById('outputText');
     const copyBtn = document.getElementById('copyBtn');
-    const downloadBtn = document.getElementById('downloadBtn');
     const toast = document.getElementById('toast');
-    const ctx = imageOutput.getContext('2d');
 
-    const boldItalicMap = {
+    const unicodeMap = {
+        // EN
         'A': '𝑨', 'B': '𝑩', 'C': '𝑪', 'D': '𝑫', 'E': '𝑬', 'F': '𝑭', 'G': '𝑮',
         'H': '𝑯', 'I': '𝑰', 'J': '𝑱', 'K': '𝑩', 'L': '𝑳', 'M': '𝑴', 'N': '𝑵',
         'O': '𝑶', 'P': '𝑸', 'Q': '𝑸', 'R': '𝑹', 'S': '𝑺', 'T': '𝑻', 'U': '𝑼',
@@ -153,91 +95,33 @@
         'h': '𝒉', 'i': '𝒊', 'j': '𝒋', 'k': '𝒌', 'l': '𝒍', 'm': '𝒎', 'n': '𝒏',
         'o': '𝒐', 'p': '𝒑', 'q': '𝒒', 'r': '𝒓', 's': '𝒔', 't': '𝒕', 'u': '𝒖',
         'v': '𝒗', 'w': '𝒘', 'x': '𝒙', 'y': '𝒚', 'z': '𝒛',
+        // RU (Псевдо-замена)
+        'А': '𝑨', 'Б': '𝟔', 'В': '𝑩', 'Г': '𝑻', 'Д': '𝑫', 'Е': '𝑬', 'Ё': '𝑬',
+        'Ж': '𝑾', 'З': '𝒁', 'И': '𝑼', 'Й': '𝑼', 'К': '𝑩', 'Л': '𝑳', 'М': '𝑴',
+        'Н': '𝑯', 'О': '𝑶', 'П': '𝑷', 'Р': '𝑸', 'С': '𝑪', 'Т': '𝑻', 'У': '𝒀',
+        'Ф': '𝜱', 'Х': '𝑿', 'Ц': '𝑼', 'Ч': '𝒀', 'Ш': '𝑾', 'Щ': '𝑾',
+        'а': '𝒂', 'б': '𝜯', 'в': '𝜝', 'г': '𝜸', 'д': '𝒅', 'е': '𝒆', 'ё': '𝒆',
+        'ж': '𝒘', 'з': '𝒛', 'и': '𝒖', 'й': '𝒖', 'к': '𝒌', 'л': '𝒍', 'м': '𝒎',
+        'н': '𝒉', 'о': '𝒐', 'п': '𝒑', 'р': '𝒑', 'с': '𝒄', 'т': '𝒎', 'у': '𝒚',
+        'ф': '𝜙', 'х': '𝒙', 'ц': '𝒖', 'ч': '𝒛', 'ш': '𝒘', 'щ': '𝒘',
         '0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟡'
     };
 
-    let currentMode = 'unicode';
-
-    function hasNonLatin(str) {
-        return /[а-яА-ЯёЁ]/.test(str);
+    function convertText(str) {
+        return str.split('').map(char => unicodeMap[char] || char).join('');
     }
 
-    function convertToUnicode(str) {
-        return str.split('').map(char => boldItalicMap[char] || char).join('');
-    }
-
-    function renderImage(text) {
-        document.fonts.ready.then(() => {
-            const fontStyle = 'italic 700 42px "Playfair Display", serif';
-            ctx.font = fontStyle;
-            
-            const metrics = ctx.measureText(text || 'Привет');
-            imageOutput.width = metrics.width + 40;
-            imageOutput.height = 80;
-
-            ctx.fillStyle = '#000000';
-            ctx.fillRect(0, 0, imageOutput.width, imageOutput.height);
-
-            ctx.font = fontStyle;
-            ctx.fillStyle = '#ffffff';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(text || 'Привет', 20, imageOutput.height / 2);
-        });
-    }
-
-    function updateView() {
+    userInput.addEventListener('input', () => {
         const val = userInput.value;
-
-        if (hasNonLatin(val)) {
-            currentMode = 'image';
-            modeBadge.textContent = 'Режим: Картинка (для русского)';
-            textOutput.style.display = 'none';
-            imageOutput.style.display = 'block';
-            downloadBtn.style.display = 'block';
-            renderImage(val);
-        } else {
-            currentMode = 'unicode';
-            modeBadge.textContent = 'Режим: Unicode Текст';
-            imageOutput.style.display = 'none';
-            downloadBtn.style.display = 'none';
-            textOutput.style.display = 'block';
-            textOutput.textContent = val ? convertToUnicode(val) : '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
-        }
-    }
-
-    userInput.addEventListener('input', updateView);
-
-    copyBtn.addEventListener('click', async () => {
-        if (currentMode === 'unicode') {
-            await navigator.clipboard.writeText(textOutput.textContent);
-            showToast('Текст скопирован!');
-        } else {
-            try {
-                imageOutput.toBlob(async (blob) => {
-                    if (!blob) return;
-                    const item = new ClipboardItem({ 'image/png': blob });
-                    await navigator.clipboard.write([item]);
-                    showToast('Картинка скопирована!');
-                });
-            } catch (err) {
-                // Если браузер телефона блокирует прямое копирование картинки
-                showToast('Браузер блокирует копирование — нажмите «Скачать»!');
-            }
-        }
+        outputText.textContent = val ? convertText(val) : '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
     });
 
-    downloadBtn.addEventListener('click', () => {
-        const link = document.createElement('a');
-        link.download = 'bold-italic.png';
-        link.href = imageOutput.toDataURL('image/png');
-        link.click();
+    copyBtn.addEventListener('click', () => {
+        navigator.clipboard.writeText(outputText.textContent).then(() => {
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        });
     });
-
-    function showToast(msg) {
-        toast.textContent = msg;
-        toast.classList.add('show');
-        setTimeout(() => toast.classList.remove('show'), 2500);
-    }
 </script>
 
 </body>
