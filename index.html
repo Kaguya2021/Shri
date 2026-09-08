@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bold Italic Generator (RU + EN)</title>
+    <title>Smart Bold Italic Generator</title>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #0d0d0d;
-            color: #ffffff;
+            color: #fff;
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             display: flex;
             justify-content: center;
@@ -20,31 +20,20 @@
             background: #181818;
             border: 1px solid #2a2a2a;
             border-radius: 16px;
-            padding: 28px;
+            padding: 24px;
             width: 100%;
-            max-width: 540px;
-            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+            max-width: 500px;
+            box-shadow: 0 12px 40px rgba(0,0,0,0.6);
         }
         h1 {
-            font-size: 22px;
-            font-weight: 600;
-            margin-bottom: 20px;
+            font-size: 20px;
+            margin-bottom: 16px;
             text-align: center;
-            color: #f0f0f0;
-        }
-        .input-group { margin-bottom: 20px; }
-        label {
-            display: block;
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 8px;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         textarea {
             width: 100%;
             height: 90px;
-            background: #000000;
+            background: #000;
             border: 1px solid #333;
             border-radius: 10px;
             color: #fff;
@@ -52,53 +41,58 @@
             font-size: 16px;
             resize: none;
             outline: none;
-            transition: border-color 0.2s;
+            margin-bottom: 16px;
         }
         textarea:focus { border-color: #555; }
-        .output-container {
-            background: #000000;
+        .mode-badge {
+            font-size: 12px;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .output-box {
+            background: #000;
             border: 1px solid #282828;
             border-radius: 10px;
             padding: 16px;
-            position: relative;
-            min-height: 80px;
+            min-height: 90px;
             display: flex;
             align-items: center;
-            justify-content: space-between;
-            gap: 12px;
+            justify-content: center;
+            margin-bottom: 16px;
+            overflow: hidden;
         }
-        .output-text {
-            font-size: 22px;
+        .text-output {
+            font-size: 24px;
             word-break: break-word;
-            color: #ffffff;
-            white-space: pre-wrap;
-            flex-grow: 1;
-            font-style: italic;
-            font-weight: bold;
+            text-align: center;
+            width: 100%;
+        }
+        canvas {
+            max-width: 100%;
+            height: auto;
+            display: none;
         }
         .copy-btn {
-            background: #ffffff;
-            color: #000000;
+            background: #fff;
+            color: #000;
             border: none;
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 12px;
             font-weight: 600;
             font-size: 14px;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-shrink: 0;
+            width: 100%;
             transition: background 0.2s, transform 0.1s;
         }
         .copy-btn:hover { background: #e0e0e0; }
-        .copy-btn:active { transform: scale(0.96); }
-        .copy-btn svg { width: 16px; height: 16px; fill: #000000; }
+        .copy-btn:active { transform: scale(0.98); }
         .toast {
             text-align: center;
             color: #4cd964;
             font-size: 13px;
-            margin-top: 12px;
+            margin-top: 10px;
             opacity: 0;
             transition: opacity 0.3s;
         }
@@ -109,77 +103,113 @@
 
 <div class="card">
     <h1>Bold Italic Generator</h1>
+    
+    <textarea id="userInput" placeholder="Введите текст (Русский или English)..."></textarea>
 
-    <div class="input-group">
-        <label for="userInput">Введите текст (Русский / English)</label>
-        <textarea id="userInput" placeholder="Пример текста / Sample text"></textarea>
+    <div class="mode-badge" id="modeBadge">Режим: Unicode Текст</div>
+    
+    <div class="output-box">
+        <!-- Блок для английского текста (Unicode) -->
+        <div class="text-output" id="textOutput">𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄</div>
+        <!-- Блок для русского текста (Картинка) -->
+        <canvas id="imageOutput"></canvas>
     </div>
 
-    <label>Результат</label>
-    <div class="output-container">
-        <div class="output-text" id="outputText">𝑷𝒑𝒖𝒎𝒆𝒑 𝒎𝒆𝒌𝒄𝒎𝒂</div>
-        <button class="copy-btn" id="copyBtn">
-            <svg viewBox="0 0 24 24">
-                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
-            </svg>
-            Скопировать
-        </button>
-    </div>
-
-    <div class="toast" id="toast">Скопировано в буфер обмена!</div>
+    <button class="copy-btn" id="copyBtn">Скопировать</button>
+    <div class="toast" id="toast">Скопировано!</div>
 </div>
 
 <script>
     const userInput = document.getElementById('userInput');
-    const outputText = document.getElementById('outputText');
+    const textOutput = document.getElementById('textOutput');
+    const imageOutput = document.getElementById('imageOutput');
+    const modeBadge = document.getElementById('modeBadge');
     const copyBtn = document.getElementById('copyBtn');
     const toast = document.getElementById('toast');
+    const ctx = imageOutput.getContext('2d');
 
-    // Карта символов для English (Mathematical Bold Italic) + русские аналоги
-    const fontMap = {
-        // English
+    // Карта символов Unicode Bold Italic (A-Z, a-z, 0-9)
+    const boldItalicMap = {
         'A': '𝑨', 'B': '𝑩', 'C': '𝑪', 'D': '𝑫', 'E': '𝑬', 'F': '𝑭', 'G': '𝑮',
         'H': '𝑯', 'I': '𝑰', 'J': '𝑱', 'K': '𝑩', 'L': '𝑳', 'M': '𝑴', 'N': '𝑵',
         'O': '𝑶', 'P': '𝑸', 'Q': '𝑸', 'R': '𝑹', 'S': '𝑺', 'T': '𝑻', 'U': '𝑼',
-        'V': '𝑽', 'W': '𝑾', 'X': '𝑿', 'Y': '', 'Z': '𝒁',
+        'V': '𝑽', 'W': '𝑾', 'X': '𝑿', 'Y': '𝒀', 'Z': '𝒁',
         'a': '𝒂', 'b': '𝒃', 'c': '𝒄', 'd': '𝒅', 'e': '𝒆', 'f': '𝒇', 'g': '𝒈',
         'h': '𝒉', 'i': '𝒊', 'j': '𝒋', 'k': '𝒌', 'l': '𝒍', 'm': '𝒎', 'n': '𝒏',
         'o': '𝒐', 'p': '𝒑', 'q': '𝒒', 'r': '𝒓', 's': '𝒔', 't': '𝒕', 'u': '𝒖',
         'v': '𝒗', 'w': '𝒘', 'x': '𝒙', 'y': '𝒚', 'z': '𝒛',
-        // Русский (стилизация под жирный курсив через подмену похожих символов Юникода)
-        'А': '𝑨', 'Б': '𝑘', 'В': '𝑩', 'Г': '𝑻', 'Д': '𝑫', 'Е': '𝑬', 'Ё': '𝑬',
-        'Ж': '𝑾', 'З': '𝒁', 'И': '𝑼', 'Й': '𝑼', 'К': '𝑩', 'Л': '𝑳', 'М': '𝑴',
-        'Н': '𝑯', 'О': '𝑶', 'П': '𝑷', 'Р': '𝑸', 'С': '𝑪', 'Т': '𝑻', 'У': '𝒀',
-        'Ф': '𝜱', 'Х': '𝑿', 'Ц': '𝑼', 'Ч': '𝒀', 'Ш': '𝑾', 'Щ': '𝑾', 'Ъ': '𝑩',
-        'Ы': '𝑩𝑰', 'Ь': '𝑩', 'Э': '𝑬', 'Ю': '𝑰𝑶', 'Я': '𝑹',
-        'а': '𝒂', 'б': '𝜯', 'в': '𝜝', 'г': '𝜸', 'д': '𝒅', 'е': '𝒆', 'ё': '𝒆',
-        'ж': '𝒘', 'з': '𝒛', 'и': '𝒖', 'й': '𝒖', 'к': '𝒌', 'л': '𝒍', 'м': '𝒎',
-        'н': '𝒉', 'о': '𝒐', 'п': '𝒑', 'р': '𝒑', 'с': '𝒄', 'т': '𝒎', 'у': '𝒚',
-        'ф': '𝜙', 'х': '𝒙', 'ц': '𝒖', 'ч': '𝒛', 'ш': '𝒘', 'щ': '𝒘', 'ъ': '𝒃',
-        'ы': '𝒃𝒊', 'ь': '𝒃', 'э': '𝒆', 'ю': '𝒊𝒐', 'я': '𝒒',
-        '0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟗'
+        '0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟡'
     };
 
-    function convertText(str) {
-        return str.split('').map(char => fontMap[char] || char).join('');
+    let currentMode = 'unicode'; // 'unicode' или 'image'
+
+    // Проверка: содержит ли текст кириллицу или другие не-латинские символы
+    function hasNonLatin(str) {
+        return /[а-яА-ЯёЁ]/.test(str);
     }
 
-    userInput.addEventListener('input', () => {
+    function convertToUnicode(str) {
+        return str.split('').map(char => boldItalicMap[char] || char).join('');
+    }
+
+    function renderImage(text) {
+        const fontStyle = 'bold italic 36px "Georgia", serif';
+        ctx.font = fontStyle;
+        
+        const metrics = ctx.measureText(text || 'Пример');
+        imageOutput.width = metrics.width + 40;
+        imageOutput.height = 70;
+
+        ctx.fillStyle = '#000000';
+        ctx.fillRect(0, 0, imageOutput.width, imageOutput.height);
+
+        ctx.font = fontStyle;
+        ctx.fillStyle = '#ffffff';
+        ctx.textBaseline = 'middle';
+        ctx.fillText(text || 'Пример', 20, imageOutput.height / 2);
+    }
+
+    function updateView() {
         const val = userInput.value;
-        if (val.trim() === '') {
-            outputText.textContent = '𝑷𝒑𝒖𝒎𝒆𝒑 𝒎𝒆𝒌𝒄𝒎𝒂';
+
+        if (hasNonLatin(val)) {
+            // Включить режим картинки для русского
+            currentMode = 'image';
+            modeBadge.textContent = 'Режим: Картинка (для русского)';
+            textOutput.style.display = 'none';
+            imageOutput.style.display = 'block';
+            renderImage(val);
         } else {
-            outputText.textContent = convertText(val);
+            // Включить режим текста Unicode для латиницы
+            currentMode = 'unicode';
+            modeBadge.textContent = 'Режим: Unicode Текст (копируется как текст)';
+            imageOutput.style.display = 'none';
+            textOutput.style.display = 'block';
+            textOutput.textContent = val ? convertToUnicode(val) : '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
+        }
+    }
+
+    userInput.addEventListener('input', updateView);
+
+    copyBtn.addEventListener('click', () => {
+        if (currentMode === 'unicode') {
+            // Копируем как текст
+            const textToCopy = textOutput.textContent;
+            navigator.clipboard.writeText(textToCopy).then(showToast);
+        } else {
+            // Копируем как PNG-картинку
+            imageOutput.toBlob(blob => {
+                if (!blob) return;
+                const item = new ClipboardItem({ 'image/png': blob });
+                navigator.clipboard.write([item]).then(showToast);
+            });
         }
     });
 
-    copyBtn.addEventListener('click', () => {
-        const textToCopy = outputText.textContent;
-        navigator.clipboard.writeText(textToCopy).then(() => {
-            toast.classList.add('show');
-            setTimeout(() => toast.classList.remove('show'), 2000);
-        });
-    });
+    function showToast() {
+        toast.classList.add('show');
+        setTimeout(() => toast.classList.remove('show'), 2000);
+    }
 </script>
 
 </body>
