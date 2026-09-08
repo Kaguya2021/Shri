@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bold Italic Generator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: #0d0d0d;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .card {
+            background: #181818;
+            border: 1px solid #2a2a2a;
+            border-radius: 16px;
+            padding: 28px;
+            width: 100%;
+            max-width: 540px;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        h1 {
+            font-size: 22px;
+            font-weight: 600;
+            margin-bottom: 20px;
+            text-align: center;
+            color: #f0f0f0;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        textarea {
+            width: 100%;
+            height: 90px;
+            background: #000000;
+            border: 1px solid #333;
+            border-radius: 10px;
+            color: #fff;
+            padding: 12px;
+            font-size: 16px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        textarea:focus {
+            border-color: #555;
+        }
+
+        .output-container {
+            background: #000000;
+            border: 1px solid #282828;
+            border-radius: 10px;
+            padding: 16px;
+            position: relative;
+            min-height: 80px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+
+        .output-text {
+            font-size: 24px;
+            word-break: break-word;
+            color: #ffffff;
+            white-space: pre-wrap;
+            flex-grow: 1;
+        }
+
+        .copy-btn {
+            background: #ffffff;
+            color: #000000;
+            border: none;
+            border-radius: 8px;
+            padding: 10px 14px;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            shrink: 0;
+            transition: background 0.2s, transform 0.1s;
+        }
+
+        .copy-btn:hover {
+            background: #e0e0e0;
+        }
+
+        .copy-btn:active {
+            transform: scale(0.96);
+        }
+
+        .copy-btn svg {
+            width: 16px;
+            height: 16px;
+            fill: #000000;
+        }
+
+        .toast {
+            text-align: center;
+            color: #4cd964;
+            font-size: 13px;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .toast.show {
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h1>Bold Italic Generator</h1>
+
+    <div class="input-group">
+        <label for="userInput">Введите текст (латиница)</label>
+        <textarea id="userInput" placeholder="Bold Italic"></textarea>
+    </div>
+
+    <label>Результат</label>
+    <div class="output-container">
+        <div class="output-text" id="outputText">𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄</div>
+        <button class="copy-btn" id="copyBtn">
+            <svg viewBox="0 0 24 24">
+                <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
+            </svg>
+            Скопировать
+        </button>
+    </div>
+
+    <div class="toast" id="toast">Скопировано в буфер обмена!</div>
+</div>
+
+<script>
+    const userInput = document.getElementById('userInput');
+    const outputText = document.getElementById('outputText');
+    const copyBtn = document.getElementById('copyBtn');
+    const toast = document.getElementById('toast');
+
+    // Карта символов для Unicode Bold Italic (как на скриншоте)
+    const boldItalicMap = {
+        'A': '𝑨', 'B': '𝑩', 'C': '𝑪', 'D': '𝑫', 'E': '𝑬', 'F': '𝑭', 'G': '𝑮',
+        'H': '𝑯', 'I': '𝑰', 'J': '𝑱', 'K': '𝑩', 'L': '𝑳', 'M': '𝑴', 'N': '𝑵',
+        'O': '𝑶', 'P': '𝑸', 'Q': '𝑸', 'R': '𝑹', 'S': '𝑺', 'T': '𝑻', 'U': '𝑼',
+        'V': '𝑽', 'W': '𝑾', 'X': '𝑿', 'Y': '𝒀', 'Z': '𝒁',
+        'a': '𝒂', 'b': '𝒃', 'c': '𝒄', 'd': '𝒅', 'e': '𝒆', 'f': '𝒇', 'g': '𝒈',
+        'h': '𝒉', 'i': '𝒊', 'j': '𝒋', 'k': '𝒌', 'l': '𝒍', 'm': '𝒎', 'n': '𝒏',
+        'o': '𝒐', 'p': '𝒑', 'q': '𝒒', 'r': '𝒓', 's': '𝒔', 't': '𝒕', 'u': '𝒖',
+        'v': '𝒗', 'w': '𝒘', 'x': '𝒙', 'y': '𝒚', 'z': '𝒛',
+        '0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟗'
+    };
+
+    function convertToBoldItalic(str) {
+        return str.split('').map(char => boldItalicMap[char] || char).join('');
+    }
+
+    userInput.addEventListener('input', () => {
+        const val = userInput.value;
+        if (val.trim() === '') {
+            outputText.textContent = '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
+        } else {
+            outputText.textContent = convertToBoldItalic(val);
+        }
+    });
+
+    copyBtn.addEventListener('click', () => {
+        const textToCopy = outputText.textContent;
+        navigator.clipboard.writeText(textToCopy).then(() => {
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 2000);
+        });
+    });
+</script>
+
+</body>
+</html>
+
