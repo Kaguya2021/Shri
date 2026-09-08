@@ -3,14 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bold Italic Generator</title>
+    <title>Bold Italic Generator (RU + EN)</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             background-color: #0d0d0d;
             color: #ffffff;
@@ -21,7 +16,6 @@
             min-height: 100vh;
             padding: 20px;
         }
-
         .card {
             background: #181818;
             border: 1px solid #2a2a2a;
@@ -31,7 +25,6 @@
             max-width: 540px;
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
         }
-
         h1 {
             font-size: 22px;
             font-weight: 600;
@@ -39,11 +32,7 @@
             text-align: center;
             color: #f0f0f0;
         }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
+        .input-group { margin-bottom: 20px; }
         label {
             display: block;
             font-size: 13px;
@@ -52,7 +41,6 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
-
         textarea {
             width: 100%;
             height: 90px;
@@ -66,11 +54,7 @@
             outline: none;
             transition: border-color 0.2s;
         }
-
-        textarea:focus {
-            border-color: #555;
-        }
-
+        textarea:focus { border-color: #555; }
         .output-container {
             background: #000000;
             border: 1px solid #282828;
@@ -83,15 +67,15 @@
             justify-content: space-between;
             gap: 12px;
         }
-
         .output-text {
-            font-size: 24px;
+            font-size: 22px;
             word-break: break-word;
             color: #ffffff;
             white-space: pre-wrap;
             flex-grow: 1;
+            font-style: italic;
+            font-weight: bold;
         }
-
         .copy-btn {
             background: #ffffff;
             color: #000000;
@@ -104,24 +88,12 @@
             display: flex;
             align-items: center;
             gap: 6px;
-            shrink: 0;
+            flex-shrink: 0;
             transition: background 0.2s, transform 0.1s;
         }
-
-        .copy-btn:hover {
-            background: #e0e0e0;
-        }
-
-        .copy-btn:active {
-            transform: scale(0.96);
-        }
-
-        .copy-btn svg {
-            width: 16px;
-            height: 16px;
-            fill: #000000;
-        }
-
+        .copy-btn:hover { background: #e0e0e0; }
+        .copy-btn:active { transform: scale(0.96); }
+        .copy-btn svg { width: 16px; height: 16px; fill: #000000; }
         .toast {
             text-align: center;
             color: #4cd964;
@@ -130,10 +102,7 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-
-        .toast.show {
-            opacity: 1;
-        }
+        .toast.show { opacity: 1; }
     </style>
 </head>
 <body>
@@ -142,13 +111,13 @@
     <h1>Bold Italic Generator</h1>
 
     <div class="input-group">
-        <label for="userInput">Введите текст (латиница)</label>
-        <textarea id="userInput" placeholder="Bold Italic"></textarea>
+        <label for="userInput">Введите текст (Русский / English)</label>
+        <textarea id="userInput" placeholder="Пример текста / Sample text"></textarea>
     </div>
 
     <label>Результат</label>
     <div class="output-container">
-        <div class="output-text" id="outputText">𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄</div>
+        <div class="output-text" id="outputText">𝑷𝒑𝒖𝒎𝒆𝒑 𝒎𝒆𝒌𝒄𝒎𝒂</div>
         <button class="copy-btn" id="copyBtn">
             <svg viewBox="0 0 24 24">
                 <path d="M16 1H4c-1.1 0-2 .9-2 2v14h2V3h12V1zm3 4H8c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h11c1.1 0 2-.9 2-2V7c0-1.1-.9-2-2-2zm0 16H8V7h11v14z"/>
@@ -166,29 +135,41 @@
     const copyBtn = document.getElementById('copyBtn');
     const toast = document.getElementById('toast');
 
-    // Карта символов для Unicode Bold Italic (как на скриншоте)
-    const boldItalicMap = {
+    // Карта символов для English (Mathematical Bold Italic) + русские аналоги
+    const fontMap = {
+        // English
         'A': '𝑨', 'B': '𝑩', 'C': '𝑪', 'D': '𝑫', 'E': '𝑬', 'F': '𝑭', 'G': '𝑮',
         'H': '𝑯', 'I': '𝑰', 'J': '𝑱', 'K': '𝑩', 'L': '𝑳', 'M': '𝑴', 'N': '𝑵',
         'O': '𝑶', 'P': '𝑸', 'Q': '𝑸', 'R': '𝑹', 'S': '𝑺', 'T': '𝑻', 'U': '𝑼',
-        'V': '𝑽', 'W': '𝑾', 'X': '𝑿', 'Y': '𝒀', 'Z': '𝒁',
+        'V': '𝑽', 'W': '𝑾', 'X': '𝑿', 'Y': '', 'Z': '𝒁',
         'a': '𝒂', 'b': '𝒃', 'c': '𝒄', 'd': '𝒅', 'e': '𝒆', 'f': '𝒇', 'g': '𝒈',
         'h': '𝒉', 'i': '𝒊', 'j': '𝒋', 'k': '𝒌', 'l': '𝒍', 'm': '𝒎', 'n': '𝒏',
         'o': '𝒐', 'p': '𝒑', 'q': '𝒒', 'r': '𝒓', 's': '𝒔', 't': '𝒕', 'u': '𝒖',
         'v': '𝒗', 'w': '𝒘', 'x': '𝒙', 'y': '𝒚', 'z': '𝒛',
+        // Русский (стилизация под жирный курсив через подмену похожих символов Юникода)
+        'А': '𝑨', 'Б': '𝑘', 'В': '𝑩', 'Г': '𝑻', 'Д': '𝑫', 'Е': '𝑬', 'Ё': '𝑬',
+        'Ж': '𝑾', 'З': '𝒁', 'И': '𝑼', 'Й': '𝑼', 'К': '𝑩', 'Л': '𝑳', 'М': '𝑴',
+        'Н': '𝑯', 'О': '𝑶', 'П': '𝑷', 'Р': '𝑸', 'С': '𝑪', 'Т': '𝑻', 'У': '𝒀',
+        'Ф': '𝜱', 'Х': '𝑿', 'Ц': '𝑼', 'Ч': '𝒀', 'Ш': '𝑾', 'Щ': '𝑾', 'Ъ': '𝑩',
+        'Ы': '𝑩𝑰', 'Ь': '𝑩', 'Э': '𝑬', 'Ю': '𝑰𝑶', 'Я': '𝑹',
+        'а': '𝒂', 'б': '𝜯', 'в': '𝜝', 'г': '𝜸', 'д': '𝒅', 'е': '𝒆', 'ё': '𝒆',
+        'ж': '𝒘', 'з': '𝒛', 'и': '𝒖', 'й': '𝒖', 'к': '𝒌', 'л': '𝒍', 'м': '𝒎',
+        'н': '𝒉', 'о': '𝒐', 'п': '𝒑', 'р': '𝒑', 'с': '𝒄', 'т': '𝒎', 'у': '𝒚',
+        'ф': '𝜙', 'х': '𝒙', 'ц': '𝒖', 'ч': '𝒛', 'ш': '𝒘', 'щ': '𝒘', 'ъ': '𝒃',
+        'ы': '𝒃𝒊', 'ь': '𝒃', 'э': '𝒆', 'ю': '𝒊𝒐', 'я': '𝒒',
         '0': '𝟎', '1': '𝟏', '2': '𝟐', '3': '𝟑', '4': '𝟒', '5': '𝟓', '6': '𝟔', '7': '𝟕', '8': '𝟖', '9': '𝟗'
     };
 
-    function convertToBoldItalic(str) {
-        return str.split('').map(char => boldItalicMap[char] || char).join('');
+    function convertText(str) {
+        return str.split('').map(char => fontMap[char] || char).join('');
     }
 
     userInput.addEventListener('input', () => {
         const val = userInput.value;
         if (val.trim() === '') {
-            outputText.textContent = '𝑩𝒐𝒍𝒅 𝑰𝒕𝒂𝒍𝒊𝒄';
+            outputText.textContent = '𝑷𝒑𝒖𝒎𝒆𝒑 𝒎𝒆𝒌𝒄𝒎𝒂';
         } else {
-            outputText.textContent = convertToBoldItalic(val);
+            outputText.textContent = convertText(val);
         }
     });
 
@@ -203,4 +184,3 @@
 
 </body>
 </html>
-
